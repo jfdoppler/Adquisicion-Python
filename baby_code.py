@@ -7,8 +7,7 @@ Created on Fri Apr 26 18:07:12 2019
 import nidaqmx
 import numpy as np
 import matplotlib.pyplot as plt
-from nidaqmx.constants import AcquisitionType
-
+import adquisicion
 
 def callback(task_handle, every_n_samples_event_type, number_of_samples,
              callback_data):
@@ -24,7 +23,7 @@ def callback(task_handle, every_n_samples_event_type, number_of_samples,
 
 # %%
 fs = 200
-tmax = 5
+tmax = 2
 dtcall = 1
 data = np.zeros(tmax*fs)
 time = np.zeros_like(data)
@@ -40,3 +39,12 @@ with nidaqmx.Task() as task:
     task.start()
     input('fin')
 plt.plot(data)
+
+# %% Set trigger
+dev = nidaqmx.system.device.Device('Dev1')
+channels = {'sound': 'ai0', 'vs': 'ai1'}
+
+fs = 44150
+tmax = 1
+adquisicion.set_trigger(dev, channels, tmax, fs)
+time, med = adquisicion.medicion_finita(dev, channels, tmax=tmax, fs=fs)
