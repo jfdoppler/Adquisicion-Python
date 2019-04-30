@@ -53,7 +53,10 @@ def medicion_finita(dev, channels, tmax=1, fs=44150, show=False):
                                                  phys_channel),
                                                  name_to_assign_to_channel=name)
         task.timing.cfg_samp_clk_timing(rate=fs, samps_per_chan=nsamples)
-        med = task.read(number_of_samples_per_channel=nidaqmx.constants.READ_ALL_AVAILABLE)
+        if len(channels) == 1:
+            med = [task.read(number_of_samples_per_channel=nidaqmx.constants.READ_ALL_AVAILABLE)]
+        else:
+            med = task.read(number_of_samples_per_channel=nidaqmx.constants.READ_ALL_AVAILABLE)
     if show:
         plt.figure()
         for ch_med in med:
