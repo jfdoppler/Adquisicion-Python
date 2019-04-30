@@ -34,21 +34,20 @@ def set_trigger(dev, channels, tmed=1, fs=44150):
     fig, ax = plt.subplots(nrows=1, ncols=nplots, figsize=(6*nplots, 4),
                            squeeze=False)
     plt.subplots_adjust(bottom=0.25)
-    umbrales = []
     sliders = []
     updates = []
-    for ncol in range(nplots):
-        ch_name = channel_names[ncol]
+    for nchannel in range(nplots):
+        ch_name = channel_names[nchannel]
+        ncol = nchannel
         ax[0, ncol].plot(time, med[ncol], lw=2, color='red',
                       label='{}'.format(ch_name))
         axumbral = plt.axes([ncol/nplots+0.1, 0.0, 1/nplots-0.15, 0.03])
-        umbral = np.mean(med[ncol])
-        umbrales.append(umbral)
+        umbral = np.mean(med[nchannel])
         sliders.append(Slider(axumbral, 'Umbral {}'.format(ch_name),
                               min((0.0, min(med[ncol]))),
                               max((0.5, max(med[ncol]))),
                               valinit=umbral))
-        hline = ax[0, ncol].axhline(umbral)
+        hline = ax[0, ncol].axhline(umbral, ls='dashed')
         update_func = create_update(axis=ax[0, ncol], hline=hline)
         sliders[-1].on_changed(update_func)
         updates.append(update_func)
