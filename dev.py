@@ -12,19 +12,28 @@ import nidaqmx
 
 #%%
 def set_trigger(dev, channels, tmed=1, fs=44150):
-    def create_update(line):
+    def create_update(axis, hline):
         def update(val):
-            line.set_ydata(val)
+            hline.set_ydata(val)
+            lines = axis.get_lines() 
+            if len(lines) > 2:
+                lines[-1].remove()
+            data_line = axis.get_lines()[0]
+            xdata = data_line.get_xdata()
+            ydata = data_line.get_ydata()
+            crossings, = np.where(np.logical_and(ydata[1:] > val,
+                                                 ydata[:-1] < val))
+            if len(crossings) > 0:
+                axis.plot(xdata[crossings], ydata[crossings], 'x', color='g')
             fig.canvas.draw_idle()
         return update
     time, med = adquisicion.medicion_finita(dev=dev, channels=channels,
-                                            tmax=tmed, fs=fs)
+                                            tmed=tmed, fs=fs)
     channel_names = list(channels.keys())
     nplots = len(channels)
     fig, ax = plt.subplots(nrows=1, ncols=nplots, figsize=(6*nplots, 4),
                            squeeze=False)
     plt.subplots_adjust(bottom=0.25)
-    hlines = []
     umbrales = []
     sliders = []
     updates = []
@@ -35,11 +44,12 @@ def set_trigger(dev, channels, tmed=1, fs=44150):
         axumbral = plt.axes([ncol/nplots+0.1, 0.0, 1/nplots-0.15, 0.03])
         umbral = np.mean(med[ncol])
         umbrales.append(umbral)
-        sliders.append(Slider(axumbral, 'Umbral {}'.format(ch_name), 0.0, 1.,
+        sliders.append(Slider(axumbral, 'Umbral {}'.format(ch_name),
+                              min((0.0, min(med[ncol]))),
+                              max((0.5, max(med[ncol]))),
                               valinit=umbral))
-        line = ax[0, ncol].axhline(umbral)
-        hlines.append(line)
-        update_func = create_update(line)
+        hline = ax[0, ncol].axhline(umbral)
+        update_func = create_update(axis=ax[0, ncol], hline=hline)
         sliders[-1].on_changed(update_func)
         updates.append(update_func)
     fig.tight_layout()
@@ -50,4 +60,4 @@ channels = {'sound': 'ai0', 'vs': 'ai1'}
 fs = 44150
 tmed = 1
 dev = nidaqmx.system.device.Device('Dev1')
-set_trigger(dev, channels)
+fig, ax, sliders, updates = set_trigger(dev, channels)

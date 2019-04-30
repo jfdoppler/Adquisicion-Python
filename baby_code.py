@@ -45,6 +45,6 @@ dev = nidaqmx.system.device.Device('Dev1')
 channels = {'sound': 'ai0', 'vs': 'ai1'}
 
 fs = 44150
-tmax = 1
-adquisicion.set_trigger(dev, channels, tmax, fs)
-time, med = adquisicion.medicion_finita(dev, channels, tmax=tmax, fs=fs)
+tmed = 1
+adquisicion.set_trigger(dev, channels, tmed, fs)
+time, med = adquisicion.medicion_finita(dev, channels, tmed=tmed, fs=fs)

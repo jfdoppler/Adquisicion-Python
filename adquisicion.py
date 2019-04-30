@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def medicion_finita(dev, channels, tmax=1, fs=44150, show=False):
+def medicion_finita(dev, channels, tmed=1, fs=44150, show=False):
     """
     Hace una medicion por un tiempo determinado
     
@@ -45,8 +45,8 @@ def medicion_finita(dev, channels, tmax=1, fs=44150, show=False):
         Lista de mediciones. Cada elemento es una lista que corresponde a las
         mediciones de un canal
     """
-    nsamples = int(fs*tmax)
-    time = np.arange(0, tmax, 1/fs)
+    nsamples = int(fs*tmed)
+    time = np.arange(0, tmed, 1/fs)
     with nidaqmx.Task() as task:
         for name, phys_channel in channels.items():
             task.ai_channels.add_ai_voltage_chan('{}/{}'.format(dev.name,
