@@ -14,13 +14,18 @@ import pandas as pd
 #%%
 def integral(data, fs, dt_integral):
     window = int(fs*dt_integral)
-    series = pd.Series(data)
+    series = pd.Series(np.abs(data))
     value = series.rolling(window=window, min_periods=1, center=True).sum()/fs
     return value
 
 
-def set_trigger(dev, channels, tmed=1, fs=44150, funciones=[integral],
-                **kwargs):
+def modulo(data):
+    value = np.abs(data)
+    return value
+
+
+def set_trigger(dev, channels, tmed=1, fs=44150,
+                funciones={integral: {'fs': 44150, 'dt_integral': 0.1}}):
     def create_update(axis, hline):
         def update(val):
             hline.set_ydata(val)
@@ -33,7 +38,7 @@ def set_trigger(dev, channels, tmed=1, fs=44150, funciones=[integral],
             crossings, = np.where(np.logical_and(ydata[1:] > val,
                                                  ydata[:-1] < val))
             if len(crossings) > 0:
-                axis.plot(xdata[crossings], ydata[crossings], 'x', color='g')
+                axis.axvline(xdata[crossings[0]], color='g')
             fig.canvas.draw_idle()
         return update
     time, med = adquisicion.medicion_finita(dev=dev, channels=channels,
@@ -44,7 +49,8 @@ def set_trigger(dev, channels, tmed=1, fs=44150, funciones=[integral],
     fig, ax = plt.subplots(nrows=nrows, ncols=ncols,
                            figsize=(6*ncols, 3*nrows),
                            squeeze=False)
-    plt.subplots_adjust(bottom=0.25)
+    fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.98,
+                        wspace=0.25, hspace=0.25)
     sliders = []
     updates = []
     for nchannel in range(ncols):
@@ -53,14 +59,19 @@ def set_trigger(dev, channels, tmed=1, fs=44150, funciones=[integral],
         for nrow in range(nrows):
             if nrow == 0:
                 variable = med[ncol]
+                label = ch_name
             else:
-                variable = funciones[nrow-1](med[ncol], fs=fs, **kwargs)
-            ax[nrow, ncol].plot(time, variable, lw=2, color='red',
-                                label='{}'.format(ch_name))
-            axumbral = plt.axes([ncol/ncols+0.1, nrow/nrows, 1/ncols-0.15, 
-                                 0.03])
+                funcion = list(funciones.keys())[nrow-1]
+                kwargs_for_f = funciones[funcion]
+                print(kwargs_for_f)
+                variable = funcion(med[ncol], **kwargs_for_f)
+                label = funcion.__name__
+            ax[nrow, ncol].plot(time, variable, lw=2, color='red')
+            ax[nrow, ncol].set_ylabel(label)
+            axumbral = plt.axes([ncol/ncols+0.1, 1.01-(nrow+1)/nrows,
+                                 1/ncols-0.2, 0.02])
             umbral = np.mean(med[ncol])
-            sliders.append(Slider(axumbral, 'Umbral {}'.format(ch_name),
+            sliders.append(Slider(axumbral, 'umbral',
                                   min((0.0, min(variable))),
                                   max((0.5, max(variable))),
                                   valinit=umbral))
@@ -68,13 +79,13 @@ def set_trigger(dev, channels, tmed=1, fs=44150, funciones=[integral],
             update_func = create_update(axis=ax[nrow, ncol], hline=hline)
             sliders[-1].on_changed(update_func)
             updates.append(update_func)
-#    fig.tight_layout()
     plt.show()
     return fig, ax, sliders, updates
 
-channels = {'sound': 'ai0', 'vs': 'ai1'}
+channels = {'sound': 'ai0', 'vs': 'ai1', 'presion': 'ai5'}
 fs = 44150
 tmed = 1
 dev = nidaqmx.system.device.Device('Dev1')
 fig, ax, sliders, updates = set_trigger(dev, channels, tmed=tmed, fs=fs,
-                                        dt_integral=0.1)
+                                        funciones={integral: {'fs': 44150, 'dt_integral': 0.1},
+                                                   modulo: {}})
