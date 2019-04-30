@@ -11,15 +11,17 @@ import adquisicion
 import nidaqmx
 import pandas as pd
 
+
 #%%
-def integral(data, fs, dt_integral):
+def integral(time, data, dt_integral):
+    fs = 1/(time[1]-time[0])
     window = int(fs*dt_integral)
     series = pd.Series(np.abs(data))
     value = series.rolling(window=window, min_periods=1, center=True).sum()/fs
     return value
 
 
-def modulo(data):
+def modulo(time, data):
     value = np.abs(data)
     return value
 
@@ -63,14 +65,13 @@ def set_trigger(dev, channels, tmed=1, fs=44150,
             else:
                 funcion = list(funciones.keys())[nrow-1]
                 kwargs_for_f = funciones[funcion]
-                print(kwargs_for_f)
-                variable = funcion(med[ncol], **kwargs_for_f)
+                variable = funcion(time, med[ncol], **kwargs_for_f)
                 label = funcion.__name__
             ax[nrow, ncol].plot(time, variable, lw=2, color='red')
             ax[nrow, ncol].set_ylabel(label)
             axumbral = plt.axes([ncol/ncols+0.1, 1.01-(nrow+1)/nrows,
                                  1/ncols-0.2, 0.02])
-            umbral = np.mean(med[ncol])
+            umbral = np.mean(variable)
             sliders.append(Slider(axumbral, 'umbral',
                                   min((0.0, min(variable))),
                                   max((0.5, max(variable))),
@@ -87,5 +88,5 @@ fs = 44150
 tmed = 1
 dev = nidaqmx.system.device.Device('Dev1')
 fig, ax, sliders, updates = set_trigger(dev, channels, tmed=tmed, fs=fs,
-                                        funciones={integral: {'fs': 44150, 'dt_integral': 0.1},
+                                        funciones={integral: {'dt_integral': 0.1},
                                                    modulo: {}})
