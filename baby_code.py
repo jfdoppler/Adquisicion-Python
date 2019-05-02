@@ -66,17 +66,12 @@ def callback(task_handle, every_n_samples_event_type, number_of_samples,
 #            write_log
 #            save_data
 #            plot
-        
-        
         last += number_of_samples
         print(last)
         return 0
 
-date = datetime.now()
-date_file = date - timedelta(seconds=15)
-date.strftime('%Y-%m-%d_%H.%M.%S')
-date_file.strftime('%Y-%m-%d_%H.%M.%S')
 
+file_time = 
 fs = 2000
 tmax = 2
 dtcall = 1

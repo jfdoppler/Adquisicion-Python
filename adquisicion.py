@@ -27,7 +27,7 @@ def medicion_finita(dev, channels, tmed=1, fs=44150, show=False):
         los nombres como los canales en string.
         {'sonido': 'ai4; 'vs': 'ai0'}
     
-    tmax : float
+    tmed : float
         Tiempo de medicion
     
     fs : float
