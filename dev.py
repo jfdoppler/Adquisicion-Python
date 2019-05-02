@@ -9,29 +9,91 @@ from matplotlib.widgets import Slider
 import numpy as np
 import adquisicion
 import nidaqmx
-import pandas as pd
+from trigger_functions import integral, modulo
 
 
-#%%
-def integral(time, data, dt_integral):
-    fs = 1/(time[1]-time[0])
-    window = int(fs*dt_integral)
-    series = pd.Series(np.abs(data))
-    value = series.rolling(window=window, min_periods=1, center=True).sum()/fs
-    return value
-
-
-def modulo(time, data):
-    value = np.abs(data)
-    return value
-
-
+# %%
 def set_trigger(dev, channels, tmed=1, fs=44150,
-                funciones={integral: {'fs': 44150, 'dt_integral': 0.1}}):
+                funciones={integral: {'dt_integral': 0.1}}):
+    """
+    Funcion para setear el (los) trigger(s). Hace una medción y grafica los
+    resultados y variables de interés en subplots para todos los canales.
+    Los graficos tienen sliders asociados que permiten definir los valores
+    de umbral para cada variable.
+
+    Parametros
+    ----------
+    dev : nidaqmx.system.device.Device
+        Objeto que representa a la placa y contiene sus atributos (por ejemplo,
+        su nombre: dev.name). Debe ser creado usando:
+        dev = nidaqmx.system.device.Device('Dev1')
+        El nombre 'Dev1' es el asignado a la placa y puede conocerse usando
+        el NI MAX.
+    channels : dict
+        Diccionario que contiene los nombres y canales físicos a medir. Tanto
+        los nombres como los canales en string.
+        {'sonido': 'ai4; 'vs': 'ai0'}
+    tmed : float
+        Tiempo de medicion
+    fs : float
+        Frecuencia de adquisición
+    funciones : dict
+        Diccionario con las funciones que queremos evaluar para decidir si
+        triggerear o no, con sus parametros particulares. Todas las funciones
+        deben tomar como parametros time, data pero pueden pedir otros
+        adicionales. Este diccionario se construye de la siguiente manera:
+        >>> funciones = {funcion_1: {par_1_1: val_1_1, par_1_2: val_1_2},
+        >>>              funcion_2: {par_2_1: val_2_1}}
+        Cada key de este diccionario es el nombre de una funcion a evaluar. El
+        value asociado a cada key es un diccionario. Este tiene como keys los
+        nombres (strings) de los parametros adicionales y como value los
+        valores.
+
+    Ejemplo
+    -------
+    Queremos evaluar las siguientes funciones en el trigger:
+    >>> def integral(time, data, dt_integral):
+    >>>     fs = 1/(time[1]-time[0])
+    >>>     window = int(fs*dt_integral)
+    >>>     series = pd.Series(np.abs(data))
+    >>>     value = series.rolling(window=window, min_periods=1,
+    >>>                            center=True).sum()/fs
+    >>> return value
+    >>> def modulo(time, data):
+    >>>     value = np.abs(data)
+    >>> return value
+    A "integral" tenemos que pasarle el argumento adicional "dt_integral",
+    mientras que a modulo no tenemos que pasarle argumentos adicionales:
+    >>> funciones = {integral: {"dt_integral": 0.5}, modulo: {}}
+
+    Returns
+    -------
+    fig : ~.figure.Figure
+    ax : array of Axes objects.
+        Array de Axes objects (creados con plt.subplots, squeeze=False)
+    sliders : array of Slider objects
+        Cada Slider está asociado a un subplot distinto.
+    updates : array of update functions
+        Cada update function esta asociada a un subplot y Slider distinto.
+    """
     def create_update(axis, hline):
+        """
+        Crea un update asociado a un eje y una línea
+
+        Parametros
+        ----------
+        axis : Axes object
+            Creado con plt.subplots sin squeeze
+        hline : Line2D
+            Línea horizontal, creada con axhline
+
+        Returns
+        -------
+        update : function
+        """
         def update(val):
             hline.set_ydata(val)
-            lines = axis.get_lines() 
+            lines = axis.get_lines()
             if len(lines) > 2:
                 lines[-1].remove()
             data_line = axis.get_lines()[0]
@@ -82,6 +144,7 @@ def set_trigger(dev, channels, tmed=1, fs=44150,
             updates.append(update_func)
     plt.show()
     return fig, ax, sliders, updates
+
 
 channels = {'sound': 'ai0', 'vs': 'ai1', 'presion': 'ai5'}
 fs = 44150
