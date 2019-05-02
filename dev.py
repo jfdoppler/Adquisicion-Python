@@ -52,6 +52,7 @@ def set_trigger(dev, channels, tmed=1, fs=44150,
     Ejemplo
     -------
     Queremos evaluar las siguientes funciones en el trigger:
+
     >>> def integral(time, data, dt_integral):
     >>>     fs = 1/(time[1]-time[0])
     >>>     window = int(fs*dt_integral)
@@ -62,8 +63,10 @@ def set_trigger(dev, channels, tmed=1, fs=44150,
     >>> def modulo(time, data):
     >>>     value = np.abs(data)
     >>> return value
+
     A "integral" tenemos que pasarle el argumento adicional "dt_integral",
     mientras que a modulo no tenemos que pasarle argumentos adicionales:
+
     >>> funciones = {integral: {"dt_integral": 0.5}, modulo: {}}
 
     Returns
