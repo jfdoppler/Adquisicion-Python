@@ -7,7 +7,7 @@ Created on Mon Apr 29 12:27:10 2019
 import nidaqmx
 import matplotlib.pyplot as plt
 import numpy as np
-
+    
 
 def medicion_finita(dev, channels, tmed=1, fs=44150, show=False):
     """
@@ -52,7 +52,7 @@ def medicion_finita(dev, channels, tmed=1, fs=44150, show=False):
             task.ai_channels.add_ai_voltage_chan('{}/{}'.format(dev.name,
                                                  phys_channel),
                                                  name_to_assign_to_channel=name)
-        task.timing.cfg_samp_clk_timing(rate=fs, samps_per_chan=nsamples)
+            task.timing.cfg_samp_clk_timing(rate=fs, samps_per_chan=nsamples)
         if len(channels) == 1:
             med = [task.read(number_of_samples_per_channel=nidaqmx.constants.READ_ALL_AVAILABLE)]
         else:
@@ -62,5 +62,3 @@ def medicion_finita(dev, channels, tmed=1, fs=44150, show=False):
         for ch_med in med:
             plt.plot(time, ch_med)
     return time, med
-
-

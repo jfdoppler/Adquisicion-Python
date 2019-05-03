@@ -85,7 +85,7 @@ def get_fname(channel_name, birdname, dtime):
     fname += '.wav'
     return fname
 
-
+# Esto no viene aca! Guardar datos y escribir log tienen que estar separados
 def save_file(folder, fname):
     full_path = folder + fname
     wavfile.write(full_path)
