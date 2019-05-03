@@ -12,10 +12,18 @@ import os
 
 # Todo esto no quedaria mejor en una clase donde iriamos actualizando self. ?
 class FileManager:
-    def __init__(self, birdname, base_path, name_fmt):
+    def __init__(self, birdname, base_path, night_start=20, night_end=6,
+                 duracion_night=15, duracion_day=10,
+                 datefmt='%Y-%m-%d_%H.%M.%S', fname_sep='_'):
+        self.night_start = night_start
+        self.night_end = night_end
+        self.duracion_night = duracion_night
+        self.duracion_day = duracion_day
+        self.duracion_med = 0
         self.isDay = True
-        self.night_start = 20
-        self.night_end = 6
+        self.fdatetime = ''
+        self.folder = ''
+        self.fnames = []
 
     def isDay_update(self):
         date = datetime.now()
@@ -25,6 +33,13 @@ class FileManager:
         else:
             self.isDay = True
 
+    def 
+
+    def fdatetime_update(self):
+        current_datetime = datetime.now()
+        file_datetime = current_datetime-timedelta(seconds=duracion_med)
+        formatted_datetime = format_datetime(file_datetime, fmt=fmt)
+        return file_datetime, formatted_datetime
 
 # %%
 # SOLO FILE MANAGEMENT
