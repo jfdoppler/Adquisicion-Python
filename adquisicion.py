@@ -7,9 +7,42 @@ Created on Mon Apr 29 12:27:10 2019
 import nidaqmx
 import matplotlib.pyplot as plt
 import numpy as np
-    
 
-def medicion_finita(dev, channels, tmed=1, fs=44150, show=False):
+
+def add_channels(task, dev, channels_dict):
+    """
+    Agregar canales.
+
+    Parametros
+    ----------
+    task : nidaqmx.task.Task
+        Objeto tarea creado con:
+
+        >>> task = nidaqmx.Task()
+
+        o (recomendado)
+
+        >>> with nidaqmx.Task() as task:
+
+    dev : nidaqmx.system.device.Device
+        Objeto que representa a la placa y contiene sus atributos (por ejemplo,
+        su nombre: dev.name). Debe ser creado usando:
+        dev = nidaqmx.system.device.Device('Dev1')
+        El nombre 'Dev1' es el asignado a la placa y puede conocerse usando
+        el NI MAX.
+    
+    channels_dict : dict
+        Diccionario que contiene los nombres y canales físicos a medir. Tanto
+        los nombres como los canales en string.
+        {'sonido': 'ai4; 'vs': 'ai0'}
+    """
+    for name, phys_channel in channels_dict.items():
+        task.ai_channels.add_ai_voltage_chan('{}/{}'.format(dev.name,
+                                                            phys_channel),
+                                             name_to_assign_to_channel=name)
+
+
+def medicion_finita(dev, channels_dict, tmed=1, fs=44150, show=False):
     """
     Hace una medicion por un tiempo determinado
     
@@ -22,7 +55,7 @@ def medicion_finita(dev, channels, tmed=1, fs=44150, show=False):
         El nombre 'Dev1' es el asignado a la placa y puede conocerse usando
         el NI MAX.
     
-    channels : dict
+    channels_dict : dict
         Diccionario que contiene los nombres y canales físicos a medir. Tanto
         los nombres como los canales en string.
         {'sonido': 'ai4; 'vs': 'ai0'}
@@ -48,12 +81,12 @@ def medicion_finita(dev, channels, tmed=1, fs=44150, show=False):
     nsamples = int(fs*tmed)
     time = np.arange(0, tmed, 1/fs)
     with nidaqmx.Task() as task:
-        for name, phys_channel in channels.items():
+        for name, phys_channel in channels_dict.items():
             task.ai_channels.add_ai_voltage_chan('{}/{}'.format(dev.name,
                                                  phys_channel),
                                                  name_to_assign_to_channel=name)
-            task.timing.cfg_samp_clk_timing(rate=fs, samps_per_chan=nsamples)
-        if len(channels) == 1:
+        task.timing.cfg_samp_clk_timing(rate=fs, samps_per_chan=nsamples)
+        if len(channels_dict) == 1:
             med = [task.read(number_of_samples_per_channel=nidaqmx.constants.READ_ALL_AVAILABLE)]
         else:
             med = task.read(number_of_samples_per_channel=nidaqmx.constants.READ_ALL_AVAILABLE)

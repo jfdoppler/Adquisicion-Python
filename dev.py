@@ -13,7 +13,7 @@ from trigger_functions import integral, modulo
 
 
 # %%
-def set_trigger(dev, channels, tmed=1, fs=44150,
+def set_trigger(dev, channels_dict, tmed=1, fs=44150,
                 funciones={integral: {'dt_integral': 0.1}}):
     """
     Funcion para setear el (los) trigger(s). Hace una medción y grafica los
@@ -29,7 +29,7 @@ def set_trigger(dev, channels, tmed=1, fs=44150,
         dev = nidaqmx.system.device.Device('Dev1')
         El nombre 'Dev1' es el asignado a la placa y puede conocerse usando
         el NI MAX.
-    channels : dict
+    channels_dict : dict
         Diccionario que contiene los nombres y canales físicos a medir. Tanto
         los nombres como los canales en string.
         {'sonido': 'ai4; 'vs': 'ai0'}
@@ -108,10 +108,11 @@ def set_trigger(dev, channels, tmed=1, fs=44150,
                 axis.axvline(xdata[crossings[0]], color='g')
             fig.canvas.draw_idle()
         return update
-    time, med = adquisicion.medicion_finita(dev=dev, channels=channels,
+    time, med = adquisicion.medicion_finita(dev=dev,
+                                            channels_dict=channels_dict,
                                             tmed=tmed, fs=fs)
-    channel_names = list(channels.keys())
-    ncols = len(channels)
+    channel_names = list(channels_dict.keys())
+    ncols = len(channels_dict)
     nrows = 1+len(funciones)
     fig, ax = plt.subplots(nrows=nrows, ncols=ncols,
                            figsize=(6*ncols, 3*nrows),
@@ -149,10 +150,10 @@ def set_trigger(dev, channels, tmed=1, fs=44150,
     return fig, ax, sliders, updates
 
 
-channels = {'sound': 'ai0', 'vs': 'ai1', 'presion': 'ai5'}
+channels_dict = {'sound': 'ai0', 'vs': 'ai1', 'presion': 'ai5'}
 fs = 44150
 tmed = 1
 dev = nidaqmx.system.device.Device('Dev1')
-fig, ax, sliders, updates = set_trigger(dev, channels, tmed=tmed, fs=fs,
+fig, ax, sliders, updates = set_trigger(dev, channels_dict, tmed=tmed, fs=fs,
                                         funciones={integral: {'dt_integral': 0.1},
                                                    modulo: {}})

@@ -54,17 +54,22 @@ from nidaqmx.constants import AcquisitionType
 def callback(task_handle, every_n_samples_event_type, number_of_samples,
              callback_data):
     global last
+    global time
     global samples
     global channels
-    if len(channels) > 1:
+    ncanales = len(channels_dict)
+    if ncanales > 1:
         new_samples = task.read(number_of_samples_per_channel=number_of_samples)
     else:
         new_samples = [task.read(number_of_samples_per_channel=number_of_samples)]
     array_samples = np.asarray(new_samples)
     samples = np.concatenate((samples[:, number_of_samples:], array_samples),
                              axis=1)
-    for chan in samples:
-        plt.plot(chan)
+    fig, ax = plt.subplots(ncols=ncanales, squeeze=False,
+                           figsize=(4*ncanales, 4))
+    for ix, chan in enumerate(samples):
+        ax[0, ix].plot(time, chan)
+        ax[0, ix].set_title(list(channels_dict.keys())[ix])
     plt.show()
 #    playback...
 #    if check_trigger_condition:
@@ -82,14 +87,14 @@ def callback(task_handle, every_n_samples_event_type, number_of_samples,
 
 fs = 44150
 tmed = 3
+time = np.arange(0, tmed, 1/fs)
 dtcall = 1
-channels = {'sound': 'ai0', 'vs': 'ai1'}
-samples = np.zeros((len(channels), int(fs*tmed)))
-#samples = np.zeros(int(fs*tmed))
+channels_dict = {'sound': 'ai0', 'vs': 'ai1'}
+dev = nidaqmx.system.device.Device('Dev1')
+samples = np.zeros((len(channels_dict), int(fs*tmed)))
 last = 0
 with nidaqmx.Task() as task:
-    task.ai_channels.add_ai_voltage_chan("Dev1/ai0")
-    task.ai_channels.add_ai_voltage_chan("Dev1/ai1")
+    adquisicion.add_channels(task, dev, channels_dict)
     task.timing.cfg_samp_clk_timing(rate=fs,
                                     sample_mode=AcquisitionType.CONTINUOUS)
     task.in_stream.input_buf_size = int(fs*dtcall*10)

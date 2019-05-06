@@ -10,6 +10,9 @@ from scipy.io import wavfile
 import os
 
 
+class Experiment(self, t_med_dia, t_med_noche, do_playbacks, trigger_functions,
+                 fs, callback_function)
+
 # Todo esto no quedaria mejor en una clase donde iriamos actualizando self. ?
 class FileManager:
     def __init__(self, birdname, base_path, night_start=20, night_end=6,
