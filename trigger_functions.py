@@ -9,6 +9,10 @@ import numpy as np
 import pandas as pd
 
 
+def abs_value(time, data):
+    return np.abs(data)
+
+
 def integral(time, data, dt_integral):
     fs = 1/(time[1]-time[0])
     window = int(fs*dt_integral)

@@ -9,12 +9,12 @@ from matplotlib.widgets import Slider
 import numpy as np
 import adquisicion
 import nidaqmx
-from trigger_functions import integral, modulo
+from trigger_functions import abs_value, integral, modulo
 
 
 # %%
 def set_trigger(dev, channels_dict, tmed=1, fs=44150,
-                funciones={integral: {'dt_integral': 0.1}}):
+                functions_dict={integral: {'dt_integral': 0.1}}):
     """
     Funcion para setear el (los) trigger(s). Hace una medción y grafica los
     resultados y variables de interés en subplots para todos los canales.
@@ -37,7 +37,7 @@ def set_trigger(dev, channels_dict, tmed=1, fs=44150,
         Tiempo de medicion
     fs : float
         Frecuencia de adquisición
-    funciones : dict
+    functions_dict : dict
         Diccionario con las funciones que queremos evaluar para decidir si
         triggerear o no, con sus parametros particulares. Todas las funciones
         deben tomar como parametros time, data pero pueden pedir otros
@@ -113,7 +113,7 @@ def set_trigger(dev, channels_dict, tmed=1, fs=44150,
                                             tmed=tmed, fs=fs)
     channel_names = list(channels_dict.keys())
     ncols = len(channels_dict)
-    nrows = 1+len(funciones)
+    nrows = 1+len(functions_dict)
     fig, ax = plt.subplots(nrows=nrows, ncols=ncols,
                            figsize=(6*ncols, 3*nrows),
                            squeeze=False)
@@ -129,8 +129,8 @@ def set_trigger(dev, channels_dict, tmed=1, fs=44150,
                 variable = med[ncol]
                 label = ch_name
             else:
-                funcion = list(funciones.keys())[nrow-1]
-                kwargs_for_f = funciones[funcion]
+                funcion = list(functions_dict.keys())[nrow-1]
+                kwargs_for_f = functions_dict[funcion]
                 variable = funcion(time, med[ncol], **kwargs_for_f)
                 label = funcion.__name__
             ax[nrow, ncol].plot(time, variable, lw=2, color='red')
@@ -155,5 +155,6 @@ fs = 44150
 tmed = 1
 dev = nidaqmx.system.device.Device('Dev1')
 fig, ax, sliders, updates = set_trigger(dev, channels_dict, tmed=tmed, fs=fs,
-                                        funciones={integral: {'dt_integral': 0.1},
+                                        functions_dict={abs_value: {},
+                                                   integral: {'dt_integral': 0.1},
                                                    modulo: {}})

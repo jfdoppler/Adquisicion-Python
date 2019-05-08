@@ -44,6 +44,31 @@ class FileManager:
         formatted_datetime = format_datetime(file_datetime, fmt=fmt)
         return file_datetime, formatted_datetime
 
+# %% 
+def gen_trigger(fs=44150, functions_dict={abs_value: {}},
+                functions_thresholds={abs_value: 0},
+                trigger_time_window=[1, 2]):
+    def check_trigger(data):
+        trigger_start = int(trigger_time_window[0]*fs)
+        trigger_end = int(trigger_time_window[1]*fs)
+        trigger_data = data[trigger_start:trigger_end]
+        time = np.arange(0, len(trigger_data))/fs
+        func_over_th = []
+        for func, kwargs in functions_dict.items():
+            func_values = np.max(func(time, trigger_data, **kwargs))
+#            print(func)
+#            print(func_values)
+#            print(functions_thresholds[func])
+            func_over_th.append(func_values >= functions_thresholds[func])
+        return (np.asarray(func_over_th)).all()
+    return check_trigger
+
+from trigger_functions import abs_value, integral, modulo
+functions_dict={abs_value: {},integral: {'dt_integral': 0.1},modulo: {}}
+functions_thresholds = {abs_value: 0, integral: 1, modulo: 1}
+trigger = gen_trigger(44150, functions_dict, functions_thresholds)
+a = trigger(samples[0])
+print(a)
 # %%
 # SOLO FILE MANAGEMENT
 def is_day(night_from=20, night_to=6):
